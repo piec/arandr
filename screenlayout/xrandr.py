@@ -1,22 +1,23 @@
 # ARandR -- Another XRandR GUI
 # Copyright (C) 2008 -- 2011 chrysn <chrysn@fsfe.org>
-# 
+#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """Wrapper around command line xrandr (only 1.2 per output features supported)"""
 
 import os
+import re
 import subprocess
 import warnings
 
@@ -146,8 +147,12 @@ class XRandR(object):
                 if r in headline:
                     o.rotations.add(r)
 
+            resolution_re = re.compile("(\d+)x(\d+)(i)?")
             for d in details:
-                o.modes.append(Size(int(a) for a in d.strip().split(" ")[0].split("x")))
+                (w, h, i) = resolution_re.match(d.strip().split(" ")[0]).groups()
+                (w, h) = (int(w), int(h))
+                if i is None:
+                    o.modes.append(Size((w, h)))
 
             self.state.outputs[o.name] = o
             self.configuration.outputs[o.name] = self.configuration.OutputConfiguration(active, geometry, rotation)
